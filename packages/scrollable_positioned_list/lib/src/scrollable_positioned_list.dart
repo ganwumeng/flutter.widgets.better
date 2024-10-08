@@ -357,6 +357,8 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       if(widget.onScroll != null){
         widget.onScroll!.call(primary.scrollController.offset);
       };
+
+      print("scrolling");
     });
   }
 
