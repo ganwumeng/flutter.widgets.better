@@ -190,7 +190,7 @@ class ScrollablePositionedList extends StatefulWidget {
   /// cache extent.
   final double? minCacheExtent;
 
-  final Function(double) onScroll;
+  final Function(double)? onScroll;
 
   @override
   State<StatefulWidget> createState() => _ScrollablePositionedListState();
