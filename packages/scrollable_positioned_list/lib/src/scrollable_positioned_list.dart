@@ -57,6 +57,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
+    this.onScroll
   })
       : assert(itemCount != null),
         assert(itemBuilder != null),
@@ -88,6 +89,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
+    this.onScroll
   })
       : assert(itemCount != null),
         assert(itemBuilder != null),
@@ -187,6 +189,8 @@ class ScrollablePositionedList extends StatefulWidget {
   /// in builds of widgets that would otherwise already be built in the
   /// cache extent.
   final double? minCacheExtent;
+
+  final Function(double) onScroll;
 
   @override
   State<StatefulWidget> createState() => _ScrollablePositionedListState();
@@ -349,6 +353,10 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       (widget.scrollOffsetNotifier?.recordProgrammaticScrolls ?? false)) {
         widget.scrollOffsetNotifier?.changeController.add(offsetChange);
       }
+
+      if(widget.onScroll != null){
+        onScroll(primary.scrollController.offset);
+      };
     });
   }
 
