@@ -57,7 +57,8 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
-  })  : assert(itemCount != null),
+  })
+      : assert(itemCount != null),
         assert(itemBuilder != null),
         itemPositionsNotifier = itemPositionsListener as ItemPositionsNotifier?,
         scrollOffsetNotifier = scrollOffsetListener as ScrollOffsetNotifier?,
@@ -87,7 +88,8 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
-  })  : assert(itemCount != null),
+  })
+      : assert(itemCount != null),
         assert(itemBuilder != null),
         assert(separatorBuilder != null),
         itemPositionsNotifier = itemPositionsListener as ItemPositionsNotifier?,
@@ -247,16 +249,18 @@ class ItemScrollController {
     required Duration duration,
     Curve curve = Curves.linear,
     List<double> opacityAnimationWeights = const [40, 20, 40],
+    double scrollOffset = 0,
   }) {
     assert(_scrollableListState != null);
     assert(opacityAnimationWeights.length == 3);
     assert(duration > Duration.zero);
     return _scrollableListState!._scrollTo(
-      index: index,
-      alignment: alignment,
-      duration: duration,
-      curve: curve,
-      opacityAnimationWeights: opacityAnimationWeights,
+        index: index,
+        alignment: alignment,
+        duration: duration,
+        curve: curve,
+        opacityAnimationWeights: opacityAnimationWeights,
+        scrollOffset: scrollOffset
     );
   }
 
@@ -279,10 +283,9 @@ class ItemScrollController {
 /// This is an experimental API and is subject to change.
 /// Behavior may be ill-defined in some cases.  Please file bugs.
 class ScrollOffsetController {
-  Future<void> animateScroll(
-      {required double offset,
-      required Duration duration,
-      Curve curve = Curves.linear}) async {
+  Future<void> animateScroll({required double offset,
+    required Duration duration,
+    Curve curve = Curves.linear}) async {
     final currentPosition =
         _scrollableListState!.primary.scrollController.offset;
     final newPosition = currentPosition + offset;
@@ -343,7 +346,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       final offsetChange = currentOffset - previousOffset;
       previousOffset = currentOffset;
       if (!_isTransitioning |
-          (widget.scrollOffsetNotifier?.recordProgrammaticScrolls ?? false)) {
+      (widget.scrollOffsetNotifier?.recordProgrammaticScrolls ?? false)) {
         widget.scrollOffsetNotifier?.changeController.add(offsetChange);
       }
     });
@@ -478,10 +481,11 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     );
   }
 
-  double _cacheExtent(BoxConstraints constraints) => max(
+  double _cacheExtent(BoxConstraints constraints) =>
+      max(
         (widget.scrollDirection == Axis.vertical
-                ? constraints.maxHeight
-                : constraints.maxWidth) *
+            ? constraints.maxHeight
+            : constraints.maxWidth) *
             _screenScrollCount,
         widget.minCacheExtent ?? 0,
       );
@@ -504,6 +508,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     required Duration duration,
     Curve curve = Curves.linear,
     required List<double> opacityAnimationWeights,
+    double scrollOffset = 0
   }) async {
     if (index > widget.itemCount - 1) {
       index = widget.itemCount - 1;
@@ -513,22 +518,24 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       _stopScroll(canceled: true);
       SchedulerBinding.instance.addPostFrameCallback((_) async {
         await _startScroll(
-          index: index,
-          alignment: alignment,
-          duration: duration,
-          curve: curve,
-          opacityAnimationWeights: opacityAnimationWeights,
+            index: index,
+            alignment: alignment,
+            duration: duration,
+            curve: curve,
+            opacityAnimationWeights: opacityAnimationWeights,
+            scrollOffset: scrollOffset
         );
         scrollCompleter.complete();
       });
       await scrollCompleter.future;
     } else {
       await _startScroll(
-        index: index,
-        alignment: alignment,
-        duration: duration,
-        curve: curve,
-        opacityAnimationWeights: opacityAnimationWeights,
+          index: index,
+          alignment: alignment,
+          duration: duration,
+          curve: curve,
+          opacityAnimationWeights: opacityAnimationWeights,
+          scrollOffset: scrollOffset
       );
     }
   }
@@ -539,6 +546,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     required Duration duration,
     Curve curve = Curves.linear,
     required List<double> opacityAnimationWeights,
+    double scrollOffset = 0
   }) async {
     final direction = index > primary.target ? 1 : -1;
     final itemPosition = primary.itemPositionsNotifier.itemPositions.value
@@ -551,7 +559,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       await primary.scrollController.animateTo(
           primary.scrollController.offset +
               localScrollAmount -
-              alignment * primary.scrollController.position.viewportDimension,
+              alignment * primary.scrollController.position.viewportDimension + scrollOffset,
           duration: duration,
           curve: curve);
     } else {
@@ -564,14 +572,15 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
           startAnimationCallback = () {};
           _animationController?.dispose();
           _animationController =
-              AnimationController(vsync: this, duration: duration)..forward();
+          AnimationController(vsync: this, duration: duration)
+            ..forward();
           opacity.parent = _opacityAnimation(opacityAnimationWeights)
               .animate(_animationController);
           secondary.scrollController.jumpTo(-direction *
               (_screenScrollCount *
-                      primary.scrollController.position.viewportDimension -
+                  primary.scrollController.position.viewportDimension -
                   alignment *
-                      secondary.scrollController.position.viewportDimension));
+                      secondary.scrollController.position.viewportDimension + scrollOffset));
 
           startCompleter.complete(primary.scrollController.animateTo(
               primary.scrollController.offset + direction * scrollAmount,
@@ -641,14 +650,14 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   void _updatePositions() {
     final itemPositions = primary.itemPositionsNotifier.itemPositions.value
         .where((ItemPosition position) =>
-            position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
+    position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
     if (itemPositions.isNotEmpty) {
       PageStorage.of(context).writeState(
           context,
           itemPositions.reduce((value, element) =>
-              value.itemLeadingEdge < element.itemLeadingEdge
-                  ? value
-                  : element));
+          value.itemLeadingEdge < element.itemLeadingEdge
+              ? value
+              : element));
     }
     widget.itemPositionsNotifier?.itemPositions.value = itemPositions;
   }
