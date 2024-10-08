@@ -355,7 +355,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       }
 
       if(widget.onScroll != null){
-        onScroll(primary.scrollController.offset);
+        widget.onScroll(primary.scrollController.offset);
       };
     });
   }
